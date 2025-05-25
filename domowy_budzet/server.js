@@ -10,6 +10,7 @@ app.use(bodyParser.json());
 app.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));
 app.use(express.static('public'));
 
+
 // Rejestracja
 app.post('/register', async (req, res) => {
     const { login, password } = req.body;
