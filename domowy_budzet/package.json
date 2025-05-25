@@ -1,14 +1,13 @@
 {
   "name": "domowy-budzet",
   "version": "1.0.0",
-  "description": "Aplikacja do zarządzania budżetem domowym",
+  "description": "Aplikacja do zarzadzania budzetem domowym",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
-    "domowy-budzet": "file:",
     "express": "^4.17.1",
     "express-session": "^1.17.2",
     "sequelize": "^6.6.5",
