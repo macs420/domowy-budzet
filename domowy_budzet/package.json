@@ -7,10 +7,11 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.17.1",
     "body-parser": "^1.19.0",
+    "domowy-budzet": "file:",
+    "express": "^4.17.1",
     "express-session": "^1.17.2",
     "sequelize": "^6.6.5",
-    "sqlite3": "^5.0.2"
+    "sqlite3": "^5.1.7"
   }
 }
