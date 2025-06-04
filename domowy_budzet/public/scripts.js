@@ -8,6 +8,8 @@ const addOperationBtn = document.getElementById("addOperationBtn");
 const exportBtn = document.getElementById("exportBtn");
 const authBtn = document.getElementById("authBtn");
 const registerBtn = document.getElementById("registerBtn");
+const categorySelect = document.getElementById("category");
+const summaryElement = document.getElementById("summary");
 
 let editOperationId = null;
 
@@ -131,6 +133,7 @@ const loadTransactions = async () => {
   console.log("Odebrane transakcje:", data.transactions);
 
   let przychody = 0, wydatki = 0;
+  let byMonth = {};
   transactionsTable.innerHTML = "";
 
   if (!Array.isArray(data.transactions)) {
@@ -140,9 +143,10 @@ const loadTransactions = async () => {
 
   data.transactions.forEach(t => {
     const row = document.createElement("tr");
-    const date = new Date(t.date || t.createdAt).toLocaleString();
+    const date = new Date(t.date || t.createdAt);
+    const dateStr = date.toLocaleString();
     row.innerHTML = `
-      <td>${date}</td>
+      <td>${dateStr}</td>
       <td>${t.amount}</td>
       <td>${t.type}</td>
       <td>${t.category}</td>
@@ -153,12 +157,42 @@ const loadTransactions = async () => {
       </td>
     `;
     transactionsTable.appendChild(row);
-    if (t.type === "Przychód") przychody += parseFloat(t.amount);
-    if (t.type === "Wydatek") wydatki += parseFloat(t.amount);
+
+    const key = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}`;
+    if (!byMonth[key]) {
+      byMonth[key] = { przychody: 0, wydatki: 0 };
+    }
+
+    const amount = parseFloat(t.amount);
+    if (t.type === "Przychód") {
+      przychody += amount;
+      byMonth[key].przychody += amount;
+    }
+    if (t.type === "Wydatek") {
+      wydatki += amount;
+      byMonth[key].wydatki += amount;
+    }
   });
 
   const saldo = przychody - wydatki;
-  document.getElementById("summary").textContent = `Przychody: ${przychody.toFixed(2)} zł, Wydatki: ${wydatki.toFixed(2)} zł, Saldo: ${saldo.toFixed(2)} zł`;
+  let summaryHtml = `
+  <div class="summary-box">
+    <h3>💰 Podsumowanie ogólne</h3>
+    <p><strong>Przychody:</strong> ${przychody.toFixed(2)} zł</p>
+    <p><strong>Wydatki:</strong> ${wydatki.toFixed(2)} zł</p>
+    <p><strong>Saldo:</strong> <span class="${saldo >= 0 ? 'saldo-plus' : 'saldo-minus'}">${saldo.toFixed(2)} zł</span></p>
+    <h4>📆 Miesięczne zestawienia</h4>
+    <ul class="monthly-list">
+`;
+
+  Object.entries(byMonth).forEach(([month, values]) => {
+    const saldoM = values.przychody - values.wydatki;
+    summaryHtml += `<li><strong>${month}:</strong> Przychody: ${values.przychody.toFixed(2)} zł, Wydatki: ${values.wydatki.toFixed(2)} zł, Saldo: <span class="${saldoM >= 0 ? 'saldo-plus' : 'saldo-minus'}">${saldoM.toFixed(2)} zł</span></li>`;
+  });
+
+  summaryHtml += `</ul></div>`;
+
+  summaryElement.innerHTML = summaryHtml;
 };
 
 function editOperation(id, amount, description, category, type) {
@@ -182,12 +216,3 @@ async function deleteOperation(id) {
 
 window.editOperation = editOperation;
 showSection(authSection);
-
-document.getElementById("applyFiltersBtn").addEventListener("click", () => loadTransactions());
-document.getElementById("clearFiltersBtn").addEventListener("click", () => {
-  document.getElementById("filterType").value = "";
-  document.getElementById("filterCategory").value = "";
-  document.getElementById("filterFromDate").value = "";
-  document.getElementById("filterToDate").value = "";
-  loadTransactions();
-});
