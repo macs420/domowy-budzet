@@ -9,6 +9,8 @@ const exportBtn = document.getElementById("exportBtn");
 const authBtn = document.getElementById("authBtn");
 const registerBtn = document.getElementById("registerBtn");
 
+let editOperationId = null;
+
 const showSection = (section) => {
   authSection.style.display = "none";
   operationSection.style.display = "none";
@@ -21,15 +23,14 @@ const resetInputs = () => {
   document.getElementById("description").value = "";
   document.getElementById("category").value = "Jedzenie";
   document.getElementById("type").value = "Przychód";
+  editOperationId = null;
+  addOperationBtn.textContent = "Dodaj operację";
 };
 
 authBtn.addEventListener("click", async () => {
   const login = document.getElementById("login").value;
   const password = document.getElementById("password").value;
-  if (!login || !password) {
-    alert("Wprowadź login i hasło.");
-    return;
-  }
+
   const response = await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -52,10 +53,7 @@ authBtn.addEventListener("click", async () => {
 registerBtn.addEventListener("click", async () => {
   const login = document.getElementById("login").value;
   const password = document.getElementById("password").value;
-  if (!login || !password) {
-    alert("Wprowadź login i hasło.");
-    return;
-  }
+
   const response = await fetch("/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -79,19 +77,21 @@ logoutBtn.addEventListener("click", async () => {
 });
 
 addOperationBtn.addEventListener("click", async () => {
-  const amount = document.getElementById("amount").value.trim();
-  const description = document.getElementById("description").value.trim();
+  const amount = document.getElementById("amount").value;
+  const description = document.getElementById("description").value;
   const category = document.getElementById("category").value;
   const type = document.getElementById("type").value;
 
-  const parsedAmount = parseFloat(amount);
-  if (!amount || isNaN(parsedAmount) || parsedAmount < 0 || !description || !category || !type) {
-    alert("Upewnij się, że wszystkie pola są wypełnione, a kwota to liczba nieujemna.");
+  if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) < 0 || !description || !category || !type) {
+    alert("Wszystkie pola muszą być wypełnione, a kwota musi być liczbą nieujemną.");
     return;
   }
 
-  const response = await fetch("/add-operation", {
-    method: "POST",
+  const method = editOperationId ? "PUT" : "POST";
+  const url = editOperationId ? `/edit-operation/${editOperationId}` : "/add-operation";
+
+  const response = await fetch(url, {
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ amount, description, category, type }),
     credentials: "include"
@@ -102,8 +102,23 @@ addOperationBtn.addEventListener("click", async () => {
     resetInputs();
     await loadTransactions();
   } else {
-    alert("Błąd dodawania operacji: " + (data.message || "brak informacji z serwera"));
+    alert((editOperationId ? "Błąd edycji: " : "Błąd dodawania operacji: ") + (data.message || "brak informacji z serwera"));
   }
+});
+
+exportBtn.addEventListener("click", () => {
+  const rows = transactionsTable.rows;
+  let csvContent = "Data,Kwota,Typ,Kategoria,Opis\n";
+  for (let i = 0; i < rows.length; i++) {
+    const cells = rows[i].cells;
+    const rowContent = Array.from(cells).slice(0, 5).map(cell => cell.textContent).join(",");
+    csvContent += rowContent + "\n";
+  }
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "transakcje.csv";
+  link.click();
 });
 
 const loadTransactions = async () => {
@@ -132,7 +147,10 @@ const loadTransactions = async () => {
       <td>${t.type}</td>
       <td>${t.category}</td>
       <td>${t.description}</td>
-      <td><button onclick="deleteOperation(${t.id})">🗑</button></td>
+      <td>
+        <button onclick="editOperation(${t.id}, '${t.amount}', '${t.description}', '${t.category}', '${t.type}')">✏️</button>
+        <button onclick="deleteOperation(${t.id})">🗑</button>
+      </td>
     `;
     transactionsTable.appendChild(row);
     if (t.type === "Przychód") przychody += parseFloat(t.amount);
@@ -141,8 +159,16 @@ const loadTransactions = async () => {
 
   const saldo = przychody - wydatki;
   document.getElementById("summary").textContent = `Przychody: ${przychody.toFixed(2)} zł, Wydatki: ${wydatki.toFixed(2)} zł, Saldo: ${saldo.toFixed(2)} zł`;
-  transactionsSection.style.display = "block";
 };
+
+function editOperation(id, amount, description, category, type) {
+  document.getElementById("amount").value = amount;
+  document.getElementById("description").value = description;
+  document.getElementById("category").value = category;
+  document.getElementById("type").value = type;
+  editOperationId = id;
+  addOperationBtn.textContent = "Zapisz zmiany";
+}
 
 async function deleteOperation(id) {
   const response = await fetch(`/delete-operation/${id}`, { method: "DELETE", credentials: "include" });
@@ -154,4 +180,14 @@ async function deleteOperation(id) {
   }
 }
 
+window.editOperation = editOperation;
 showSection(authSection);
+
+document.getElementById("applyFiltersBtn").addEventListener("click", () => loadTransactions());
+document.getElementById("clearFiltersBtn").addEventListener("click", () => {
+  document.getElementById("filterType").value = "";
+  document.getElementById("filterCategory").value = "";
+  document.getElementById("filterFromDate").value = "";
+  document.getElementById("filterToDate").value = "";
+  loadTransactions();
+});

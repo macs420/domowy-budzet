@@ -75,6 +75,26 @@ app.post('/add-operation', async (req, res) => {
   }
 });
 
+app.put('/edit-operation/:id', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ success: false, message: "Brak dostępu." });
+  }
+  const { amount, description, category, type } = req.body;
+  const parsedAmount = parseFloat(amount);
+  if (!amount || isNaN(parsedAmount) || parsedAmount < 0 || !description || !category || !type) {
+    return res.json({ success: false, message: "Nieprawidłowe dane wejściowe." });
+  }
+  try {
+    const updated = await Operation.update(
+      { amount: parsedAmount, description, category, type },
+      { where: { id: req.params.id, UserId: req.session.userId } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+});
+
 app.get('/get-transactions', async (req, res) => {
   console.log("Pobieranie transakcji dla userId:", req.session.userId);
   if (!req.session.userId) {
@@ -89,7 +109,6 @@ app.delete('/delete-operation/:id', async (req, res) => {
   if (!req.session.userId) {
     return res.status(401).json({ success: false });
   }
-
   try {
     await Operation.destroy({ where: { id: req.params.id, UserId: req.session.userId } });
     res.json({ success: true });
