@@ -8,17 +8,23 @@ const sequelize = new Sequelize({
 const User = sequelize.define('User', {
   login: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: "Login nie może być pusty" }
+    }
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: "Hasło nie może być puste" }
+    }
   }
 });
 
 const Operation = sequelize.define('Operation', {
   amount: {
-    type: DataTypes.STRING,
+    type: DataTypes.FLOAT,
     allowNull: false
   },
   description: {

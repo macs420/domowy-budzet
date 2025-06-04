@@ -26,11 +26,15 @@ const resetInputs = () => {
 authBtn.addEventListener("click", async () => {
   const login = document.getElementById("login").value;
   const password = document.getElementById("password").value;
-
+  if (!login || !password) {
+    alert("Wprowadź login i hasło.");
+    return;
+  }
   const response = await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ login, password })
+    body: JSON.stringify({ login, password }),
+    credentials: "include"
   });
 
   const data = await response.json();
@@ -38,49 +42,59 @@ authBtn.addEventListener("click", async () => {
     currentUser = data.user;
     logoutBtn.style.display = "inline-block";
     await loadTransactions();
-    operationSection.style.display = "block";
+    showSection(operationSection);
     transactionsSection.style.display = "block";
   } else {
-    alert("Błąd dodawania operacji: " + (data.message || "brak informacji z serwera"));
-
+    alert("Błąd logowania: " + (data.message || "brak informacji z serwera"));
   }
 });
 
 registerBtn.addEventListener("click", async () => {
   const login = document.getElementById("login").value;
   const password = document.getElementById("password").value;
-
+  if (!login || !password) {
+    alert("Wprowadź login i hasło.");
+    return;
+  }
   const response = await fetch("/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ login, password })
+    body: JSON.stringify({ login, password }),
+    credentials: "include"
   });
 
   const data = await response.json();
   if (data.success) {
     alert("Rejestracja zakończona sukcesem. Możesz się teraz zalogować.");
   } else {
-    alert("Błąd rejestracji!");
+    alert("Błąd rejestracji: " + (data.message || "brak informacji z serwera"));
   }
 });
 
 logoutBtn.addEventListener("click", async () => {
-  await fetch("/logout", { method: "POST" });
+  await fetch("/logout", { method: "POST", credentials: "include" });
   currentUser = null;
   showSection(authSection);
   logoutBtn.style.display = "none";
 });
 
 addOperationBtn.addEventListener("click", async () => {
-  const amount = document.getElementById("amount").value;
-  const description = document.getElementById("description").value;
+  const amount = document.getElementById("amount").value.trim();
+  const description = document.getElementById("description").value.trim();
   const category = document.getElementById("category").value;
   const type = document.getElementById("type").value;
+
+  const parsedAmount = parseFloat(amount);
+  if (!amount || isNaN(parsedAmount) || parsedAmount < 0 || !description || !category || !type) {
+    alert("Upewnij się, że wszystkie pola są wypełnione, a kwota to liczba nieujemna.");
+    return;
+  }
 
   const response = await fetch("/add-operation", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount, description, category, type })
+    body: JSON.stringify({ amount, description, category, type }),
+    credentials: "include"
   });
 
   const data = await response.json();
@@ -88,32 +102,26 @@ addOperationBtn.addEventListener("click", async () => {
     resetInputs();
     await loadTransactions();
   } else {
-    alert("Błąd dodawania operacji!");
+    alert("Błąd dodawania operacji: " + (data.message || "brak informacji z serwera"));
   }
-});
-
-exportBtn.addEventListener("click", () => {
-  const rows = transactionsTable.rows;
-  let csvContent = "Data,Kwota,Typ,Kategoria,Opis\n";
-  for (let i = 0; i < rows.length; i++) {
-    const cells = rows[i].cells;
-    const rowContent = Array.from(cells).slice(0, 5).map(cell => cell.textContent).join(",");
-    csvContent += rowContent + "\n";
-  }
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "transakcje.csv";
-  link.click();
 });
 
 const loadTransactions = async () => {
-  const response = await fetch("/get-transactions");
-  if (!response.ok) return;
+  const response = await fetch("/get-transactions", { credentials: "include" });
+  if (!response.ok) {
+    console.error("Błąd pobierania transakcji");
+    return;
+  }
   const data = await response.json();
+  console.log("Odebrane transakcje:", data.transactions);
 
   let przychody = 0, wydatki = 0;
   transactionsTable.innerHTML = "";
+
+  if (!Array.isArray(data.transactions)) {
+    console.warn("Brak tablicy transakcji");
+    return;
+  }
 
   data.transactions.forEach(t => {
     const row = document.createElement("tr");
@@ -133,11 +141,11 @@ const loadTransactions = async () => {
 
   const saldo = przychody - wydatki;
   document.getElementById("summary").textContent = `Przychody: ${przychody.toFixed(2)} zł, Wydatki: ${wydatki.toFixed(2)} zł, Saldo: ${saldo.toFixed(2)} zł`;
-  showSection(transactionsSection);
+  transactionsSection.style.display = "block";
 };
 
 async function deleteOperation(id) {
-  const response = await fetch(`/delete-operation/${id}`, { method: "DELETE" });
+  const response = await fetch(`/delete-operation/${id}`, { method: "DELETE", credentials: "include" });
   const data = await response.json();
   if (data.success) {
     await loadTransactions();
