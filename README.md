@@ -1,3 +1,9 @@
+## Autorzy
+
+- Polina Rybachuk – 53556
+- Maksymilian Majek – 51323
+- Karolina Karczewska – 53835
+  
 # Domowy Budżet
 
 > **"Zarządzaj swoimi pieniędzmi jak mistrz finansów!"**
@@ -62,3 +68,4 @@ npm start
 Otwórz przeglądarkę i przejdź do:
 
 http://localhost:3000
+
