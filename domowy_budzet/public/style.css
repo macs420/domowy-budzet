@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
   margin: 0;
-  padding: 0;
+  padding: 30px;
   background-color: #f4f4f9;
 }
 
@@ -46,3 +46,36 @@ th {
   background-color: #2d3e50;
   color: white;
 }
+
+.summary-box {
+  padding: 1em;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #f9f9f9;
+  margin-top: 1em;
+}
+
+.summary-box h3,
+.summary-box h4 {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.saldo-plus {
+  color: green;
+  font-weight: bold;
+}
+
+.saldo-minus {
+  color: red;
+  font-weight: bold;
+}
+
+.monthly-list {
+  padding-left: 1.2em;
+}
+
+#exportBtn {
+  margin-top: 20px;
+}
+

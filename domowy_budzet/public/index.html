@@ -4,41 +4,53 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Domowy Budżet</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css"> <!-- Łączenie z plikiem CSS -->
 </head>
 <body>
+
+  <!-- Nagłówek z tytułem aplikacji i przyciskiem wylogowania -->
   <header>
     <h1>Domowy Budżet</h1>
-    <button id="logoutBtn" style="display:none;">Wyloguj</button>
+    <button id="logoutBtn" style="display:none;">Wyloguj</button> <!-- Pokazuje się po zalogowaniu -->
   </header>
 
+  <!-- Sekcja logowania i rejestracji -->
   <section id="authSection">
     <h2 id="authTitle">Zaloguj się</h2>
-    <input type="text" id="login" placeholder="Login">
-    <input type="password" id="password" placeholder="Hasło">
-    <button id="authBtn">Zaloguj</button>
-    <button id="registerBtn">Zarejestruj się</button>
+    <input type="text" id="login" placeholder="Login"> <!-- Pole login -->
+    <input type="password" id="password" placeholder="Hasło"> <!-- Pole hasło -->
+    <button id="authBtn">Zaloguj</button> <!-- Przycisk logowania -->
+    <button id="registerBtn">Zarejestruj się</button> <!-- Przycisk rejestracji -->
   </section>
 
+  <!-- Sekcja dodawania nowej operacji (widoczna po zalogowaniu) -->
   <section id="operationSection" style="display:none;">
     <h2>Dodaj Operację</h2>
-    <input type="text" id="amount" placeholder="Kwota">
-    <input type="text" id="description" placeholder="Opis">
+    <input type="text" id="amount" placeholder="Kwota"> <!-- Kwota operacji -->
+    <input type="text" id="description" placeholder="Opis"> <!-- Opis operacji -->
+    
+    <!-- Wybór kategorii -->
     <select id="category">
       <option value="Jedzenie">Jedzenie</option>
       <option value="Transport">Transport</option>
       <option value="Rozrywka">Rozrywka</option>
       <option value="Inne">Inne</option>
     </select>
+
+    <!-- Wybór typu operacji -->
     <select id="type">
       <option value="Przychód">Przychód</option>
       <option value="Wydatek">Wydatek</option>
     </select>
-    <button id="addOperationBtn">Dodaj</button>
+
+    <button id="addOperationBtn">Dodaj</button> <!-- Dodaje nową operację -->
   </section>
 
+  <!-- Sekcja z listą transakcji i eksportem (widoczna po zalogowaniu) -->
   <section id="transactionsSection" style="display:none;">
     <h2>Twoje Transakcje</h2>
+    
+    <!-- Tabela z operacjami użytkownika -->
     <table id="transactionsTable">
       <thead>
         <tr>
@@ -47,15 +59,20 @@
           <th>Typ</th>
           <th>Kategoria</th>
           <th>Opis</th>
-          <th>Akcje</th>
+          <th>Akcje</th> <!-- Edytuj / Usuń -->
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody></tbody> <!-- Tutaj będą wstawiane dane z JavaScript -->
     </table>
+
+    <!-- Podsumowanie (saldo, suma przychodów i wydatków) -->
     <div id="summary"></div>
+
+    <!-- Przycisk do eksportowania danych do pliku CSV -->
     <button id="exportBtn">Eksportuj do CSV</button>
   </section>
 
+  <!-- Podłączenie pliku JavaScript -->
   <script src="scripts.js"></script>
 </body>
 </html>
